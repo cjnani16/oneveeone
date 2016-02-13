@@ -7,21 +7,46 @@
     * {margin:0; padding:0;}
 
         html, body {
-            background-color: azure;
+            background-image: url("https://pixabay.com/static/uploads/photo/2015/09/05/07/49/palm-trees-923976_960_720.jpg");
             overflow: hidden;
             height: 100%;
         }
+		
+		canvas {
+		 user-select: none;
+		-ms-user-select: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-webkit-touch-callout: none;
+		-webkit-user-drag: none;
+			background-color: azure;
+			padding-left: 0;
+			padding-right: 0;
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: 50px;
+			margin-bottom: 150px;
+			display: block;
+}
     </style>
 </head>
-<body>
-<canvas id="canvas">
+<body overflow="scroll">
+<h1 align="center">JS Stealth</h1>
+<img align="center" height="75" src="http://media.moddb.com/images/mods/1/30/29056/Logo_doom.png" />
+<canvas id="canvas" tabindex='1'>
     HTML 5 canvas support missing!
 </canvas>
+<p>
+Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
 
-<script src="picasso.js"></script>
-<script src="bbox.js"></script>
+
+</p>
+
+
 <script src="pod.js"></script>
-<script src="vector2.js"></script>
+<script src="keypress.js"></script>
+<script src="framework.js"></script>
 <script src="hunter.js"></script>
 <script src="arena.js"></script>
 <script src="main.js"></script>
