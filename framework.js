@@ -1,4 +1,16 @@
 /**
+* Miscellaneous helpful stuff
+*/
+
+function Create2DArray(rows) {
+  var arr = [];
+  for (var i=0;i<rows;i++) {
+     arr[i] = [];
+  }
+  return arr;
+ }
+
+/**
  * Drawing and color
  */
 var Animation = function(src, xframes, yframes, fwidth, fheight) {
@@ -106,6 +118,13 @@ var Bbox = function(x, y, w, h)
 
         return false;
     }
+	
+	this.Set = function(x,y,w,h) {
+		this.x=x;
+		this.y=y;
+		this.width=w;
+		this.height=h;
+	}
 };
 
 /*
