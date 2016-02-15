@@ -24,6 +24,7 @@ var TileMap = function(w,h,ta,td) {
 	this.tiles[5][1]=2;
 	this.tiles[5][2]=1;
 	this.tiles[5][3]=2;
+	this.tiles[4][3]=1;
 	this.tiles[5][4]=1;
 	this.tiles[5][5]=1; //test code
 	this.tiles[5][6]=2;

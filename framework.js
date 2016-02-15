@@ -2,6 +2,8 @@
 * Miscellaneous helpful stuff
 */
 
+var sign = function(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
+
 function Create2DArray(rows) {
   var arr = [];
   for (var i=0;i<rows;i++) {
@@ -27,10 +29,17 @@ var Picasso = function()
 {
 
 }
-    Picasso.DrawBB = function(ctx, bbox, color)
+    Picasso.DrawBB = function(ctx, bbox, color, offset)
     {
+	var ox=0, oy=0;
+		if (offset==null) {
+			ox = ((document.getElementById("canvas").width/2)-240);
+			oy = 50;
+		}
+		
+		
         ctx.fillStyle = color;
-        ctx.fillRect(bbox.x, bbox.y, bbox.width, bbox.height);
+        ctx.fillRect(bbox.x + ox, bbox.y + oy, bbox.width, bbox.height);
     }
 	
 	Picasso.DrawAnimation = function(anim, pos) {

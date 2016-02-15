@@ -18,15 +18,23 @@ var origin_x = (canvas.width/2)-250;
 var physics = function(object) {
 	var temp = new Bbox(0,0,0,0);
 	
-	temp.Set(object.position.x+object.velocity.x, object.position.y, object.bbox.width, object.bbox.height);
-	if (!arena.IsHitting(temp))
-    object.position.x+=object.velocity.x;
+	for (var xvel = Math.abs(object.velocity.x); xvel > 0; xvel-=0.5) { //another complicated way to collide more snugly with walls
+		temp.Set(object.position.x+(xvel*sign(object.velocity.x)), object.position.y, object.bbox.width, object.bbox.height);
+		if (arena.IsHitting(temp))
+			continue;
+		object.position.x+=(xvel*sign(object.velocity.x));
+		break;
+	}
 	
-	temp.Set(object.position.x, object.position.y+object.velocity.y, object.bbox.width, object.bbox.height);
-	if (arena.IsHitting(temp))
-	object.velocity.y=0;
-	else
-    object.position.y+=object.velocity.y;
+	while (Math.abs(object.velocity.y)>1) { //if youre about to hit something below you (or above) keep trying smaller distances. this helps smoothly contact surfaces.
+		temp.Set(object.position.x, object.position.y+object.velocity.y, object.bbox.width, object.bbox.height);
+		if (arena.IsHitting(temp))
+			object.velocity.y/=2;
+		else {
+			object.position.y+=object.velocity.y;
+			break;
+		}
+	}
 
     if (object.position.y<arena.pods[arena.podIndex].height-object.bbox.height) {
         object.velocity.y+=0.5;
