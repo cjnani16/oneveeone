@@ -87,8 +87,19 @@ var Vector2 = function(x, y) {
 	}
 	
 	this.Normalize = function() { //returns 1 length vector in the same direction of this
-		var mag = math.sqrt((this.x*this.x)+(this.y*this.y))
+		var mag = Math.sqrt((this.x*this.x)+(this.y*this.y))
 		return new Vector2(this.x/mag, this.y/mag);
+	}
+
+	this.MultiplyByScalar = function(sc) {
+		this.x*-sc;
+		this.y*=sc;
+	}
+
+	this.SetDirection = function(angle) {
+		var x = this.Length()*Math.cos(angle);
+		var y = this.Length()*Math.sin(angle);
+		return new Vector2(x,y);
 	}
 }
 
@@ -140,6 +151,15 @@ var Bbox = function(x, y, w, h)
 USER INPUT HANDLING
 */
 
+getMousePositionInCanvas = function(canvas, event) {
+	var rect = canvas.getBoundingClientRect();
+	var mpos = new Vector2(0,0);
+	mpos.x = -(canvas.width/2)+Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)+240;
+	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height) - 50;
+
+	return mpos;
+}
+
 var InputHandler = function(canv, player) {
 	var dir = 0;
 	var listener = new window.keypress.Listener(canv);
@@ -149,18 +169,53 @@ var InputHandler = function(canv, player) {
 	});
 	
 	canv.addEventListener('keydown', function(event) {
-	switch (event.keyCode) {
-		case 65: player.velocity.x=-4; dir=-1; break;
-		case 68: player.velocity.x=4; dir=1; break;
-	}
+		switch (event.keyCode) {
+			case 65: player.velocity.x=-4; dir=-1; break;
+			case 68: player.velocity.x=4; dir=1; break;
+		}
 	}, false);
 	
 	canv.addEventListener('keyup', function(event) {
-	switch (event.keyCode) {
-		case 65: if (dir==-1) player.velocity.x=0; break;
-		case 68: if (dir==1) player.velocity.x=0; break;
-	}
+		switch (event.keyCode) {
+			case 65: if (dir==-1) player.velocity.x=0; break;
+			case 68: if (dir==1) player.velocity.x=0; break;
+		}
 	}, false);
 	
-	listener.is
+	canvas.addEventListener('click', function(event) {
+		 player.Shoot(getMousePositionInCanvas(canvas, event));
+	}, false);
+}
+
+/*
+	PHYSICS
+ */
+
+var physics = function(object) {
+	var temp = new Bbox(0,0,0,0);
+
+	for (var xvel = Math.abs(object.velocity.x); xvel > 0; xvel-=0.5) { //another complicated way to collide more snugly with walls
+		temp.Set(object.position.x+(xvel*sign(object.velocity.x)), object.position.y, object.bbox.width, object.bbox.height);
+		if (arena.IsHitting(temp))
+			continue;
+		object.position.x+=(xvel*sign(object.velocity.x));
+		break;
+	}
+
+	while (Math.abs(object.velocity.y)>1) { //if youre about to hit something below you (or above) keep trying smaller distances. this helps smoothly contact surfaces.
+		temp.Set(object.position.x, object.position.y+object.velocity.y, object.bbox.width, object.bbox.height);
+		if (arena.IsHitting(temp))
+			object.velocity.y/=2;
+		else {
+			object.position.y+=object.velocity.y;
+			break;
+		}
+	}
+
+	if (object.position.y<arena.pods[arena.podIndex].height-object.bbox.height) {
+		object.velocity.y+=0.5;
+	} else {
+		object.velocity.y=0;
+		object.position.y=arena.pods[arena.podIndex].height-object.bbox.height;
+	}
 }

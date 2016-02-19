@@ -20,13 +20,13 @@ var TileMap = function(w,h,ta,td) {
 		}
 	}
 	
-	this.tiles[5][0]=1; //test code
+	this.tiles[5][0]=1; //test code for a simple map, TODO read these from files
 	this.tiles[5][1]=2;
 	this.tiles[5][2]=1;
 	this.tiles[5][3]=2;
 	this.tiles[4][3]=1;
 	this.tiles[5][4]=1;
-	this.tiles[5][5]=1; //test code
+	this.tiles[5][5]=1;
 	this.tiles[5][6]=2;
 	this.tiles[5][7]=1;
 	this.tiles[5][8]=2;
@@ -58,7 +58,8 @@ var TileMap = function(w,h,ta,td) {
 		return false;
 	}
 	
-	this.Step = function(ctx, box) {
+	this.Step = function(box)
+	{
 		var temp = new Bbox(0,0,0,0);
 		this.collidingWithPlayer = false;
 		
@@ -67,10 +68,21 @@ var TileMap = function(w,h,ta,td) {
 			for (var k=0;k<this.tilesacross;k++) 
 			{
 				temp.Set(k*this.tilewidth,i*this.tileheight,this.tilewidth,this.tileheight);
-				
 				if (temp.Intersects(box) && this.tiles[i][k]!=0) this.collidingWithPlayer = true;
-				
-				switch(this.tiles[i][k]) 
+			}
+		}
+	}
+
+	this.Render = function (ctx)
+	{
+		var temp = new Bbox(0,0,0,0);
+		for (var i=0;i<this.tilesdown;i++)
+		{
+			for (var k=0;k<this.tilesacross;k++)
+			{
+				temp.Set(k*this.tilewidth,i*this.tileheight,this.tilewidth,this.tileheight);
+
+				switch(this.tiles[i][k])
 				{
 					case 1: Picasso.DrawBB(ctx,temp,"green"); break; //basic black block
 					case 2: Picasso.DrawBB(ctx,temp,"yellow"); break; //basic brown block
@@ -78,5 +90,4 @@ var TileMap = function(w,h,ta,td) {
 			}
 		}
 	}
-
 }
