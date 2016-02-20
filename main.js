@@ -23,7 +23,7 @@ var Render = function() {
 
 gameLoop = function()
 {
-	physics(arena.mainPlayer);
+	physics(arena.mainPlayer, false);
 
 	this.arena.Step();
 

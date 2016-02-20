@@ -29,6 +29,39 @@ var Picasso = function()
 {
 
 }
+    Picasso.DrawImageRot = function(ctx, position, image, direction, offset)
+    {
+        var ox=0, oy=0;
+        if (offset==null) {
+            ox = ((document.getElementById("canvas").width/2)-240);
+            oy = 50;
+        }
+
+        direction-=Math.PI/2; //random shit so that they work aith atan2. Make all images point RIGHT
+        direction*=-1;
+
+        // save the context
+        ctx.save();
+
+        // move the origin
+        ctx.translate(position.x+ox, position.y+oy);
+
+        // now move across and down half the
+        // width and height of the image
+        ctx.translate(image.width/2, image.height/2);
+
+        // rotate around center point
+        ctx.rotate(direction);
+
+        // then draw the image back and up
+        ctx.drawImage(image, -image.width/2, -image.height/2);
+
+        // and restore the coordinate system
+        ctx.restore();
+
+        //...whew... -jnani
+    }
+
     Picasso.DrawBB = function(ctx, bbox, color, offset)
     {
 	var ox=0, oy=0;
@@ -74,8 +107,11 @@ var Vector2 = function(x, y) {
     this.x = x;
     this.y = y;
 
+    /**
+     * @return {number}
+     */
     this.Direction = function() {
-        return Math.atan(this.y/this.x);
+        return Math.atan2(this.x, this.y);
     }
 
     this.Length = function() {
@@ -182,8 +218,12 @@ var InputHandler = function(canv, player) {
 		}
 	}, false);
 	
-	canvas.addEventListener('click', function(event) {
+	canvas.addEventListener('mouseup', function(event) {
 		 player.Shoot(getMousePositionInCanvas(canvas, event));
+	}, false);
+
+	canvas.addEventListener('mousedown', function(event) {
+		player.Draw();
 	}, false);
 }
 
@@ -191,31 +231,61 @@ var InputHandler = function(canv, player) {
 	PHYSICS
  */
 
-var physics = function(object) {
-	var temp = new Bbox(0,0,0,0);
+var physics = function(object, sticky) {
+	this.bbox = new Bbox(0,0,0,0);
+    this.podIndex = object.podIndex;
 
 	for (var xvel = Math.abs(object.velocity.x); xvel > 0; xvel-=0.5) { //another complicated way to collide more snugly with walls
-		temp.Set(object.position.x+(xvel*sign(object.velocity.x)), object.position.y, object.bbox.width, object.bbox.height);
-		if (arena.IsHitting(temp))
+		this.bbox.Set(object.position.x+(xvel*sign(object.velocity.x)), object.position.y, object.bbox.width, object.bbox.height);
+		if (arena.IsHitting(this)) {
+			if (sticky)
+			{
+				object.position.x+=(xvel*sign(object.velocity.x));
+				object.velocity.y=object.velocity.x=0;
+			}
 			continue;
+		}
 		object.position.x+=(xvel*sign(object.velocity.x));
 		break;
 	}
 
 	while (Math.abs(object.velocity.y)>1) { //if youre about to hit something below you (or above) keep trying smaller distances. this helps smoothly contact surfaces.
-		temp.Set(object.position.x, object.position.y+object.velocity.y, object.bbox.width, object.bbox.height);
-		if (arena.IsHitting(temp))
-			object.velocity.y/=2;
+        this.bbox.Set(object.position.x, object.position.y+object.velocity.y, object.bbox.width, object.bbox.height);
+		if (arena.IsHitting(this)) {
+            if (sticky)
+            {
+                object.position.y+=(xvel*sign(object.velocity.y));
+                object.velocity.y=object.velocity.x=0;
+                break;
+            }
+
+            object.velocity.y /= 2;
+        }
 		else {
 			object.position.y+=object.velocity.y;
 			break;
 		}
 	}
 
-	if (object.position.y<arena.pods[arena.podIndex].height-object.bbox.height) {
+	if (object.position.y<arena.pods[object.podIndex].height-object.bbox.height) {
 		object.velocity.y+=0.5;
 	} else {
 		object.velocity.y=0;
-		object.position.y=arena.pods[arena.podIndex].height-object.bbox.height;
+        if (sticky) object.velocity.x=0;
+		object.position.y=arena.pods[object.podIndex].height-object.bbox.height;
 	}
+
+    if (object.position.x+object.bbox.width > arena.pods[object.podIndex].width
+        && object.podIndex+1 < arena.pods.length)
+    {
+        object.podIndex+=1;
+        object.position.x = 0;
+    }
+
+    if (object.position.x < 0
+        && object.podIndex-1 >= 0)
+    {
+        object.podIndex-=1;
+        object.position.x = arena.pods[object.podIndex].width-object.bbox.width;
+    }
 }

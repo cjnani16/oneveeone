@@ -3,19 +3,20 @@
  */
 var Arena = function()
 {
-    this.podIndex=2;
     this.mainPlayer = new Hunter("Main", new Vector2(50,50), this);
+    this.mainPlayer.podIndex=2;
     this.pods = new Array(new Pod(1), new Pod(2), new Pod(3));
 
     this.quiver = [];
     this.arrow_count = 0;
+    this.a_image = document.getElementById("spr_arrow");
 	
-	this.IsHitting = function(box) {
-		return this.pods[this.podIndex].map.CheckCollision(box);
+	this.IsHitting = function(obj) {//TODO FIX
+		return this.pods[obj.podIndex].map.CheckCollision(obj.bbox);
 	}
 	
 	this.IsHittingPlayer = function() {
-		return this.pods[this.podIndex].map.collidingWithPlayer;
+		return this.pods[this.mainPlayer.podIndex].map.collidingWithPlayer;
 	}
 
     this.Step = function()
@@ -23,28 +24,18 @@ var Arena = function()
 
         this.mainPlayer.Step();
 
-        this.pods[this.podIndex].Step(this.mainPlayer.bbox); //update tilesest
-
-
-        if (this.mainPlayer.position.x+this.mainPlayer.bbox.width > this.pods[this.podIndex].width
-            && this.podIndex+1 < this.pods.length)
-        {
-                this.podIndex+=1;
-                this.mainPlayer.position.x = 0;
-        }
-
-        if (this.mainPlayer.position.x < 0
-            && this.podIndex-1 >= 0)
-        {
-                this.podIndex-=1;
-                this.mainPlayer.position.x = this.pods[this.podIndex].width-this.mainPlayer.bbox.width;
-        }
+        this.pods[this.mainPlayer.podIndex].Step(this.mainPlayer.bbox); //update tilesest
 
         for (var i = 0; i < this.arrow_count; i++)
         {
-            physics(this.quiver[i]);
+            physics(this.quiver[i], true);
             this.quiver[i].bbox.x = this.quiver[i].position.x;
             this.quiver[i].bbox.y = this.quiver[i].position.y;
+
+            if (!this.IsHitting(this.quiver[i])) {
+                this.quiver[i].direction = this.quiver[i].velocity.Direction();
+            }
+
         }
     }
 
@@ -52,23 +43,24 @@ var Arena = function()
     {
         var temp = new Bbox(0,0,0,0);
 
-        if (this.podIndex+1 < this.pods.length) { //draw pod preview (right)
-            temp.Set((this.pods[this.podIndex].width),90,300,300);
+        if (this.mainPlayer.podIndex+1 < this.pods.length) { //draw pod preview (right)
+            temp.Set((this.pods[this.mainPlayer.podIndex].width),90,300,300);
             Picasso.DrawBB(ctx, temp, "orange");
         }
 
-        if (this.podIndex-1 >= 0) { //draw pod preview (left)
+        if (this.mainPlayer.podIndex-1 >= 0) { //draw pod preview (left)
             temp.Set(-300,90,300,300);
             Picasso.DrawBB(ctx, temp, "brown");
         }
 
-        this.pods[this.podIndex].Render(ctx); //draw pod
+        this.pods[this.mainPlayer.podIndex].Render(ctx); //draw pod
 
         for (var i = 0; i < this.arrow_count; i++) //draw arrows
         {
-            if (arena.IsHitting(this.quiver[i].bbox))
-                Picasso.DrawBB(ctx, this.quiver[i].bbox, "red");
-            else Picasso.DrawBB(ctx, this.quiver[i].bbox, "black");
+            if (this.quiver[i].podIndex == this.mainPlayer.podIndex) {
+                Picasso.DrawImageRot(ctx, this.quiver[i].position, this.a_image, this.quiver[i].direction);
+            }
+
         }
     }
 }

@@ -10,7 +10,7 @@ Pod = function(num) {
     this.Step = function(box) {this.map.Step(box);}
     this.Render = function(ctx)
     {
-        Picasso.DrawBB(ctx, arena.pods[arena.podIndex].bg, "gray"); //draw pod bg
+        Picasso.DrawBB(ctx, this.bg, "gray"); //draw pod bg
         this.map.Render(ctx) //draw tilemap
         ctx.fillText(this.name,550,40); //draw pod name
 
