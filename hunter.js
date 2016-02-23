@@ -27,6 +27,10 @@ var Hunter = function(n, p, a) {
     this.temp = new Bbox(0,0,0,0);
     this.podIndex=0;
 
+    this.sprite = new Animation("/Stealth/sprites/sheet0_strip2.png", 2, 1, 2);
+    this.sprite.width = this.bbox.width;
+    this.sprite.height = this.bbox.height;
+
     this.a_drawing = false;
     this.a_power = 0;
 
@@ -38,12 +42,16 @@ var Hunter = function(n, p, a) {
         if (this.a_drawing && (this.a_power+0.5)<=24) {
             this.a_power += (0.5);
         }
+
+        this.sprite.Update();
     }
 
     this.Render = function(ctx) {
         if (arena.IsHitting(this))
             Picasso.DrawBB(ctx, this.bbox, "red");
         else Picasso.DrawBB(ctx, this.bbox, "blue");
+
+        this.sprite.Render(ctx, this.bbox);
 
         if (this.a_drawing) {
             this.temp.Set(0, 460, this.a_power*20, 20);

@@ -15,15 +15,6 @@ function Create2DArray(rows) {
 /**
  * Drawing and color
  */
-var Animation = function(src, xframes, yframes, fwidth, fheight) {
-	this.sheet = new Image(src);
-	this.width = sheet.width;
-	this.height = sheet.height;
-	this.xframes = xframes;
-	this.yframes = yframes;
-	this.fwidth = fwidth;
-	this.fheight = fheight;
-}
  
 var Picasso = function()
 {
@@ -75,8 +66,8 @@ var Picasso = function()
         ctx.fillRect(bbox.x + ox, bbox.y + oy, bbox.width, bbox.height);
     }
 	
-	Picasso.DrawAnimation = function(anim, pos) {
-		ctx.drawImage(0,0, anim.fwidth, anim.fheight, pos.x, pos.y, anim.width, anim.height);
+	Picasso.DrawAnimation = function(ctx, anim, bbox, offset) {
+		anim.Render(ctx, bbox);
 	}
 	
 var Color = function(r, g, b, a) {
