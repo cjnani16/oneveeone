@@ -1,0 +1,11 @@
+{
+  "name": "OneVeeOne",
+  "author": "Haiieiujah",
+  "description": "online arena",
+  "dependencies": {
+    "browserify": "^13.0.0",
+    "express": "^4.13.4",
+    "jade": "^1.11.0",
+    "socket.io": "latest"
+  }
+}
