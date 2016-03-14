@@ -14,9 +14,26 @@ var inputh = new InputHandler(canvas, arena.mainPlayer);
 
 var origin_x = (canvas.width/2)-240;
 
-socket.on("PositionBroadcast", function(spos) {
-	arena.mainPlayer.position = spos;
+var gotid=false;
+
+socket.on("RecvID", function(id) {
+	arena.mainPlayer.id = id;
+	gotid=true;
+	console.log("got my match id! it's "+id);
 });
+
+socket.on("Alert", function(msg) {
+	alert(msg);
+});
+
+socket.on("ServerBroadcast", function(players) {
+	arena.GetPlayerBy
+});
+
+var name = document.getElementById("u").innerHTML;
+
+socket.emit("JoinRequest", name);
+console.log("user is "+ name);
 
 var Render = function() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
@@ -24,13 +41,14 @@ var Render = function() {
 	this.arena.mainPlayer.Render(ctx);
 }
 
+
 gameLoop = function()
 {
+	if (!gotid) window.requestAnimationFrame(gameLoop); //dont start playing until we get the id back
+
 	physics(arena.mainPlayer, false);
 
 	arena.Step();
-
-	socket.emit('PositionUpdate', arena.mainPlayer.position);
 
 	Render();
 

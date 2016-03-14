@@ -3,6 +3,7 @@
  */
 var Arena = function()
 {
+    this.otherPlayer = new Hunter("Enemy", new Vector2(100,50), this);
     this.mainPlayer = new Hunter("Main", new Vector2(50,50), this);
     this.mainPlayer.podIndex=2;
     this.pods = new Array(new Pod(1), new Pod(2), new Pod(3));
@@ -14,14 +15,10 @@ var Arena = function()
 	this.IsHitting = function(obj) {//TODO FIX
 		return this.pods[obj.podIndex].map.CheckCollision(obj.bbox);
 	}
-	
-	this.IsHittingPlayer = function() {
-		return this.pods[this.mainPlayer.podIndex].map.collidingWithPlayer;
-	}
 
     this.Step = function()
     {
-
+        this.otherPlayer.Step();
         this.mainPlayer.Step();
 
         this.pods[this.mainPlayer.podIndex].Step(this.mainPlayer.bbox); //update tilesest

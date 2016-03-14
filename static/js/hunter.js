@@ -26,6 +26,7 @@ var Hunter = function(n, p, a) {
     this.arena = a;
     this.temp = new Bbox(0,0,0,0);
     this.podIndex=0;
+    this.uuid;
 
     this.sprite = new Animation("sprites/sheet0_strip2.png", 2, 1, 2);
     this.sprite.width = this.bbox.width;

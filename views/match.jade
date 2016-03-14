@@ -1,0 +1,49 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='UTF-8')
+    title= title
+    div(id='u' style='display:none')= username
+    style(type='text/css').
+      * {margin:0; padding:0;}
+      html, body {
+      height: 100%;
+      }
+      canvas {
+      user-select: none;
+      -ms-user-select: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-user-drag: none;
+      background-color: azure;
+      padding-left: 0;
+      padding-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 50px;
+      margin-bottom: 150px;
+      display: block;
+      }
+  body(overflow='scroll')
+    h1(align='center') JS Stealth
+    canvas#canvas(tabindex='1')
+      | HTML 5 canvas support missing!
+    p(align='center')
+      | Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+      | when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting,
+      | remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
+      | and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+    img#spr_arrow(height='10', width='10', src='http://www.cerviflan.com.br/img/mooncake/icons/iconsweets/is/dark/arrow-right-small.png')
+    img#spr_idle(src='http://orig02.deviantart.net/a976/f/2013/227/8/7/gs___madoka_idle_sprite_sheet_by_konbe-d6ic4ms.gif')
+    script(src='https://cdn.socket.io/socket.io-1.4.5.js')
+    script(src='js/middle.js')
+    script(src='js/keypress.js')
+    script(src='js/framework.js')
+    script(src='js/animation.js')
+    script(src='js/tilemap.js')
+    script(src='js/pod.js')
+    script(src='js/hunter.js')
+    script(src='js/arena.js')
+    script(src='js/main.js')
