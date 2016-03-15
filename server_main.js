@@ -350,8 +350,17 @@ var Hunter = function(n, p, a)
     this.podIndex=2;
     this.uuid;
 
+    this.dir=0;
+
     this.a_drawing = false;
     this.a_power = 0;
+
+    this.packet = {
+    	position:this.position,
+    	velocity:this.velocity,
+    	podIndex:this.podIndex,
+    	name:this.name
+    };
 
     this.Step = function()
     {
@@ -361,6 +370,13 @@ var Hunter = function(n, p, a)
         if (this.a_drawing && (this.a_power+0.5)<=24) {
             this.a_power += (0.5);
         }
+
+        this.packet = {
+    		position:this.position,
+    		velocity:this.velocity,
+    		podIndex:this.podIndex,
+    		name:this.name
+    	};
     }
 
     this.Render = function(ctx) {
@@ -378,8 +394,8 @@ var Hunter = function(n, p, a)
     this.Shoot = function(target) {
         if (this.a_power==0) return;
         var arrow = new Arrow(new Vector2(this.position.x, this.position.y), target, this.a_power, this.podIndex);
-        arena.arrow_count+=1;
-        arena.quiver[arena.arrow_count-1] = arrow;
+        this.arena.arrow_count+=1;
+        this.arena.quiver[this.arena.arrow_count-1] = arrow;
         this.a_drawing = false;
         this.a_power=0;
     }
@@ -400,6 +416,11 @@ Arena = function()
 
     this.quiver = [];
     this.arrow_count = 0;
+
+    this.packet = {
+    	quiver: this.quiver,
+    	arrowcount:this.arrow_count
+    };
 
     this.hasVacancy = function() {
         return (this.numplayers==1);
@@ -497,7 +518,7 @@ var server = http.listen(port, function() {
 
 /*
 *
-* S E R V E R   L O G I C / L O O P
+* S E R V E R   L O G I C   /   L O O P   /   N E T C O D E
 *
 */
 
@@ -527,14 +548,25 @@ var Match = function() {
 
 	this.GetPlayerById = function(id) {
 		for (var i = 0; i < this.arena.numplayers; i++) {
-			if (this.arena.players[i] !=null && this.arena.players[i].id == id) return this.arena.players[i];
+			if (this.arena.players[i] !=null && this.arena.players[i].uuid == id) return this.arena.players[i];
 		}
 		return null;
+	}
+	
+	this.GetOpponentById = function(id) {
+		var index=null;
+		for (var i = 0; i < this.arena.numplayers; i++) {
+			if (this.arena.players[i] !=null && this.arena.players[i].uuid == id) index=i;
+		}
+		var o = (!index) === true ? 1 : 0
+		return this.arena.players[o];
 	}
 
 	this.GetPlayerByIndex = function(index) {
 		return this.arena.players[index];
 	}
+
+
 
 	this.RemovePlayerById = function(id) {
 		for (var i = 0; i < this.arena.numplayers; i++) {
@@ -556,26 +588,11 @@ var Match = function() {
 
 var matches = [];
 
+//WARNING - POORLY COMMENTED SPAGHETTI NETCODE AHEAD D:
 io.on('connection', function(socket) {
 	console.log('User connected, id: ' + socket.id);
 
-	socket.on('UserInput', function(keyCode) {
-		//TODO INPUTHANDLING
-	})
-
-	socket.on('disconnect', function() {
-			console.log('User disconnected');
-			if (socket.match!=null) {
-				socket.match.Alert("A player has disconnected. :(");
-
-				socket.match.RemovePlayerById(socket.id);
-
-				if (socket.match.numplayers==0) {
-
-				}
-			}
-	});
-
+	//SETUP AND JOINING
 	socket.on('JoinRequest', function(name) {
 			console.log("join request received from " + name);
 			var foundmatch = false;
@@ -584,7 +601,7 @@ io.on('connection', function(socket) {
 
 					foundmatch=true; console.log("match found");
 
-					var h =  new Hunter(name, new Vector2(50,50));
+					var h =  new Hunter(name, new Vector2(50,50), matches[i].arena);
 
 					matches[i].SetPlayer(1,h).uuid = socket.id;
 					socket.join(matches[i].uuid); //put them in the room for their match
@@ -601,7 +618,7 @@ io.on('connection', function(socket) {
 				runningMatches++;
 				matches[runningMatches-1] = new Match();
 
-				var h =  new Hunter(name, new Vector2(100,50));
+				var h =  new Hunter(name, new Vector2(100,50), matches[runningMatches-1].arena);
 
 				matches[runningMatches-1].SetPlayer(0,h, matches[i].arena).uuid = socket.id;
 				socket.join(matches[runningMatches-1].uuid); //put them in the new, empty match
@@ -611,6 +628,76 @@ io.on('connection', function(socket) {
 				matches[runningMatches-1].Alert("No open matches, waiting for an opponent...");
 			}
 	});
+
+	//SENDING UPDATE PACKETS
+	socket.on('MatchStateRequest', function() {
+		if (socket.match!=null) {
+			socket.emit("YourState", socket.match.GetPlayerById(socket.id).packet);
+
+			if (socket.match.GetOpponentById(socket.id)!=null)
+				if (socket.match.GetOpponentById(socket.id).podIndex == socket.match.GetPlayerById(socket.id).podIndex)
+					socket.emit("TheirState", socket.match.GetOpponentById(socket.id).packet);
+
+
+			socket.emit("ArenaState", socket.match.arena.packet);
+		}
+		else console.log("MatchStateRequest Received for Dead Match...");
+	});
+
+	//HANDLING USER INPUT (MIGHT BE ISSUES WITH BBOXES? JUST SOME FORESIGHT)
+	socket.on('Ijump', function() {
+		if (socket.match==null) {return;}
+
+		console.log("player jump!");
+		socket.match.GetPlayerById(socket.id).velocity.y = -7;
+	});
+	socket.on('Ikd', function(code) {
+		if (socket.match==null) {return;}
+
+		switch (code) {
+			case 65: socket.match.GetPlayerById(socket.id).velocity.x=-4; socket.match.GetPlayerById(socket.id).dir=-1; break;
+			case 68: socket.match.GetPlayerById(socket.id).velocity.x=4; socket.match.GetPlayerById(socket.id).dir=1; break;
+		}
+		console.log("player movement");
+	});
+	socket.on('Iku', function(code) {
+		if (socket.match==null) {return;}
+
+		switch (code) {
+			case 65: if (socket.match.GetPlayerById(socket.id).dir==-1) socket.match.GetPlayerById(socket.id).velocity.x=0; break;
+			case 68: if (socket.match.GetPlayerById(socket.id).dir==1) socket.match.GetPlayerById(socket.id).velocity.x=0; break;
+		}
+		console.log("player stops movement");
+	});
+	socket.on('Imd', function() {
+		if (socket.match==null) {return;}
+
+		console.log("player charging...");
+		socket.match.GetPlayerById(socket.id).Draw();
+	});
+	socket.on('Imu', function(pos) {
+		if (socket.match==null) {return;}
+
+		console.log("player shot!");
+		socket.match.GetPlayerById(socket.id).Shoot(pos);
+	});
+
+	
+	//LEAVING THE MATCH - DICSONNECTING
+	socket.on('disconnect', function() {
+			console.log('User disconnected');
+			if (socket.match!=null) {
+				socket.match.Alert("A player has disconnected. :(");
+
+				socket.match.RemovePlayerById(socket.id);
+
+				if (socket.match.numplayers==0) {
+
+				}
+			}
+	});
+
+	
 });
 
 var ticks=0;
@@ -638,4 +725,5 @@ var serverGameLoop = function() {
 
 }
 
-setInterval(serverGameLoop, 1000/30);
+serverGameLoop();
+setInterval(serverGameLoop, 1000/50);

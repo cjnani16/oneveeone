@@ -65,6 +65,16 @@ var Picasso = function()
         ctx.fillStyle = color;
         ctx.fillRect(bbox.x + ox, bbox.y + oy, bbox.width, bbox.height);
     }
+
+    Picasso.DrawText = function(ctx, text, x, y, offset) {
+    var ox=0, oy=0;
+		if (offset==null) {
+			ox = ((document.getElementById("canvas").width/2)-240);
+			oy = 50;
+		}
+
+		ctx.fillText(text, x+ox, y+oy);
+    }
 	
 	Picasso.DrawAnimation = function(ctx, anim, bbox, offset) {
 		anim.Render(ctx, bbox);
@@ -192,28 +202,45 @@ var InputHandler = function(canv, player) {
 	var listener = new window.keypress.Listener(canv);
 
 	listener.simple_combo("w", function() {
+			socket.emit("Ijump");
+
+			//client.. side.. prediction...?
 			player.velocity.y = -7;
 	});
 	
 	canv.addEventListener('keydown', function(event) {
+		var code = event.keyCode;
+
+		//client side-prediction
 		switch (event.keyCode) {
-			case 65: player.velocity.x=-4; dir=-1; break;
-			case 68: player.velocity.x=4; dir=1; break;
+			case 65: socket.emit("Ikd", code); player.velocity.x=-4; dir=-1; break;
+			case 68: socket.emit("Ikd", code); player.velocity.x=4; dir=1; break;
 		}
 	}, false);
 	
 	canv.addEventListener('keyup', function(event) {
+		var code = event.keyCode;
+		socket.emit("Iku", code);
+
+		//client side prediction!
 		switch (event.keyCode) {
-			case 65: if (dir==-1) player.velocity.x=0; break;
-			case 68: if (dir==1) player.velocity.x=0; break;
+			case 65: socket.emit("Iku", code); if (dir==-1) player.velocity.x=0; break;
+			case 68: socket.emit("Iku", code); if (dir==1) player.velocity.x=0; break;
 		}
 	}, false);
 	
 	canvas.addEventListener('mouseup', function(event) {
-		 player.Shoot(getMousePositionInCanvas(canvas, event));
+		var pos = getMousePositionInCanvas(canvas, event);
+		socket.emit("Imu", pos);
+
+		//client side prediction :)
+		player.Shoot(getMousePositionInCanvas(canvas, event));
 	}, false);
 
 	canvas.addEventListener('mousedown', function(event) {
+		socket.emit("Imd");
+
+		//client side... prediction?
 		player.Draw();
 	}, false);
 }

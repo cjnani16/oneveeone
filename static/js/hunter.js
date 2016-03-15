@@ -53,6 +53,7 @@ var Hunter = function(n, p, a) {
         else Picasso.DrawBB(ctx, this.bbox, "blue");
 
         this.sprite.Render(ctx, this.bbox);
+        Picasso.DrawText(ctx, ""+this.name, this.position.x, this.position.y);
 
         if (this.a_drawing) {
             this.temp.Set(0, 460, this.a_power*20, 20);
