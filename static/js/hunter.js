@@ -28,7 +28,7 @@ var Hunter = function(n, p, a) {
     this.podIndex=0;
     this.uuid;
 
-    this.sprite = new Animation("sprites/sheet0_strip2.png", 2, 1, 2);
+    this.sprite = new Animation("sprites/hunter.png", 2, 1, 2);
     this.sprite.width = this.bbox.width;
     this.sprite.height = this.bbox.height;
 

@@ -10,10 +10,11 @@ var Arena = function()
 
     this.quiver = [];
     this.arrow_count = 0;
-    this.a_image = document.getElementById("spr_arrow");
+    this.a_image = new Image(10,10);
+    this.a_image.src = "sprites/arrow.png";
 	
 	this.IsHitting = function(obj) {//TODO FIX
-		return this.pods[obj.podIndex].map.CheckCollision(obj.bbox);
+		return this.pods[obj.podIndex].map.CheckCollision(new Bbox(obj.bbox.x, obj.bbox.y, obj.bbox.width, obj.bbox.height));
 	}
 
     this.Step = function()
@@ -30,7 +31,8 @@ var Arena = function()
             this.quiver[i].bbox.y = this.quiver[i].position.y;
 
             if (!this.IsHitting(this.quiver[i])) {
-                this.quiver[i].direction = this.quiver[i].velocity.Direction();
+                var v = new Vector2(this.quiver[i].velocity.x, this.quiver[i].velocity.y);
+                this.quiver[i].direction = v.Direction();
             }
 
         }

@@ -322,10 +322,11 @@ Pod = function(num)
 *
 */
 
-var Arrow = function(start, end, power, pod) 
+var Arrow = function(start, end, power, pod, pname) 
 {
     this.position = new Vector2(start.x, start.y);
     this.podIndex = pod;
+    this.name = pname;
 
     var xcomp = end.x-start.x;
     var ycomp = end.y-start.y;
@@ -393,7 +394,7 @@ var Hunter = function(n, p, a)
 
     this.Shoot = function(target) {
         if (this.a_power==0) return;
-        var arrow = new Arrow(new Vector2(this.position.x, this.position.y), target, this.a_power, this.podIndex);
+        var arrow = new Arrow(new Vector2(this.position.x, this.position.y), target, this.a_power, this.podIndex, this.name);
         this.arena.arrow_count+=1;
         this.arena.quiver[this.arena.arrow_count-1] = arrow;
         this.a_drawing = false;
@@ -407,14 +408,15 @@ var Hunter = function(n, p, a)
 *
 */
 
-Arena = function()
+Arena = function(dad)
 {
 	this.numplayers = 0;
     this.players = [];
+    this.match = dad;
 
     this.pods = new Array(new Pod(1), new Pod(2), new Pod(3));
 
-    this.quiver = [];
+    this.quiver = {};
     this.arrow_count = 0;
 
     this.packet = {
@@ -436,6 +438,11 @@ Arena = function()
 
     this.Step = function()
     {
+    	this.packet = {
+    		quiver: this.quiver,
+    		arrowcount:this.arrow_count
+    	};
+
         for (var i = 0; i < this.numplayers; i++) {
 			if (this.players[i] !=null) {
 				this.players[i].Step();
@@ -452,6 +459,14 @@ Arena = function()
             if (!this.IsHitting(this.quiver[i])) {
                 this.quiver[i].direction = this.quiver[i].velocity.Direction();
             }
+
+            for (var p = 0; p < 2; p++) {
+            	if (this.players[p]!=null && this.quiver[i].bbox.Intersects(this.players[p].bbox) && (this.quiver[i].name!=this.players[p].name) && (this.quiver[i].velocity.Length()>0.1) && (this.quiver[i].podIndex == this.players[p].podIndex)) {
+
+            		io.to(this.match.GetOpponentById(this.players[p].uuid).uuid).emit("MatchEnd", true);
+            		io.to(this.players[p].uuid).emit("MatchEnd", false);
+            	}
+        	}
         }
 
     }
@@ -526,7 +541,7 @@ var runningMatches=0;
 
 var Match = function() {
 	this.uuid = uuid.v4();
-	this.arena = new Arena();
+	this.arena = new Arena(this);
 
 	this.Alert = function(msg) {
 		io.to(this.uuid).emit("Alert", msg);
@@ -571,9 +586,9 @@ var Match = function() {
 	this.RemovePlayerById = function(id) {
 		for (var i = 0; i < this.arena.numplayers; i++) {
 			if (this.arena.players[i]!=null && this.arena.players[i].uuid == id)  {
-				console.log("successfully removed from match");
 				this.arena.players[i]=null;
 				this.arena.numplayers-=1;
+				console.log("successfully removed player "+id+" from match. Match now has " +this.arena.numplayers+ " players.");
 				break;
 			}
 		}
@@ -587,6 +602,17 @@ var Match = function() {
 }
 
 var matches = [];
+
+//MATCH SORTING (DUH)
+var SortMatches = function() {
+	var rm = runningMatches+1;
+	for (var i = 0; i < rm; i++) {
+		if (matches[i]==null) {
+			matches[i] = matches[i+1];
+			matches[i+1] = null;
+		}
+	}
+}
 
 //WARNING - POORLY COMMENTED SPAGHETTI NETCODE AHEAD D:
 io.on('connection', function(socket) {
@@ -609,6 +635,8 @@ io.on('connection', function(socket) {
 
 					socket.emit("RecvID", matches[i].uuid);
 					socket.emit("Alert", "joined a match with an existing player, named " + matches[i].GetPlayerByIndex(0).name);
+					io.to(matches[i].GetOpponentById(socket.id).uuid).emit("Alert", "Player named " + h.name + " joined the match!");
+					io.to(matches[i].uuid).emit("LateJoin");
 				}
 			}
 
@@ -631,17 +659,23 @@ io.on('connection', function(socket) {
 
 	//SENDING UPDATE PACKETS
 	socket.on('MatchStateRequest', function() {
-		if (socket.match!=null) {
-			socket.emit("YourState", socket.match.GetPlayerById(socket.id).packet);
+		process.nextTick(function() {
+			try {
+				if (socket.match!=null) {
+					if (socket.match.GetPlayerById(socket.id)!=null)
+					socket.emit("YourState", socket.match.GetPlayerById(socket.id).packet);
 
-			if (socket.match.GetOpponentById(socket.id)!=null)
-				if (socket.match.GetOpponentById(socket.id).podIndex == socket.match.GetPlayerById(socket.id).podIndex)
-					socket.emit("TheirState", socket.match.GetOpponentById(socket.id).packet);
+					if (socket.match.GetOpponentById(socket.id)!=null)
+						if (socket.match.GetOpponentById(socket.id).podIndex == socket.match.GetPlayerById(socket.id).podIndex)
+							socket.emit("TheirState", socket.match.GetOpponentById(socket.id).packet);
 
-
-			socket.emit("ArenaState", socket.match.arena.packet);
-		}
-		else console.log("MatchStateRequest Received for Dead Match...");
+					if (socket.match.arena != null)
+					socket.emit("ArenaState", socket.match.arena.packet);
+				}
+			} catch (e) {
+				console.log("error sending match request.");
+			}
+		});
 	});
 
 	//HANDLING USER INPUT (MIGHT BE ISSUES WITH BBOXES? JUST SOME FORESIGHT)
@@ -686,15 +720,25 @@ io.on('connection', function(socket) {
 	//LEAVING THE MATCH - DICSONNECTING
 	socket.on('disconnect', function() {
 			console.log('User disconnected');
-			if (socket.match!=null) {
-				socket.match.Alert("A player has disconnected. :(");
 
-				socket.match.RemovePlayerById(socket.id);
+			process.nextTick(function() {
+				if (socket.match!=null) {
+					socket.match.Alert("A player has disconnected. :(");
 
-				if (socket.match.numplayers==0) {
+					socket.match.RemovePlayerById(socket.id);
 
+					if (socket.match.arena.numplayers==0) {
+						console.log("Match "+socket.match.uuid+" has no players, and will be deleted.");
+						for (var i = 0; i < runningMatches; i++) {
+							if (matches[i]!=null && (matches[i].uuid == socket.match.uuid)) {
+								matches[i]=null;
+								runningMatches-=1;
+								SortMatches();
+							}
+						}
+					}
 				}
-			}
+			});
 	});
 
 	

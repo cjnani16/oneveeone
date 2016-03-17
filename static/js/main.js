@@ -10,11 +10,13 @@ canvas.style.height = canvas.height + "px";
 var ctx             = canvas.getContext('2d');
 
 var arena = new Arena();
-var inputh = new InputHandler(canvas, arena.mainPlayer);
+var inputh;
 
 var origin_x = (canvas.width/2)-240;
 
 var gotid=false;
+var matchBegun=false;
+var serverUpdateInterval, gameLoopInterval, lobbyLoopInterval;
 
 //RECEIVE MESSAGES FROM SERVER
 socket.on("RecvID", function(id) {
@@ -32,21 +34,35 @@ socket.on("YourState", function(packet) {
 	arena.mainPlayer.velocity = packet.velocity;
 	arena.mainPlayer.name = packet.name;
 	arena.mainPlayer.podIndex = packet.podIndex;
-
-	console.log("server says: my position is ("+packet.position.x+","+packet.position.y+")");
 });
 
 socket.on("TheirState", function(packet) {
+	matchBegun = true;
 	arena.otherPlayer.position = packet.position;
 	arena.otherPlayer.velocity = packet.velocity;
 	arena.otherPlayer.name = packet.name;
 	arena.otherPlayer.podIndex = packet.podIndex;
-	console.log("theirstate");
+});
+
+socket.on("LateJoin", function() {
+	matchBegun = true;
+	inputh = new InputHandler(canvas, arena.mainPlayer);
 });
 
 socket.on("ArenaState", function(packet) {
 	arena.quiver = packet.quiver;
 	arena.arrow_count = packet.arrowcount;
+});
+
+socket.on("MatchEnd", function(result) {
+	socket.disconnect();
+	clearInterval(serverUpdateInterval);
+	clearInterval(gameLoopInterval);
+
+	if (result)
+		alert("Victory!");
+	else
+		alert("Defeat.");
 });
 
 var Render = function() {
@@ -61,6 +77,27 @@ var Render = function() {
 
 var getServerUpdate = function() {
 	socket.emit("MatchStateRequest");
+}
+
+lobbyLoop = function() {
+	if (!gotid) {
+		ctx.clearRect(0,0,canvas.width, canvas.height);
+		Picasso.DrawText(ctx, "Connecting to server...", 30, 250, null, {color: "black", size:30, font:"Carter One"});
+		return;
+	}
+
+	if (!matchBegun) {
+		ctx.clearRect(0,0,canvas.width, canvas.height);
+		Picasso.DrawText(ctx, "Waiting for opponent...", 30, 250, null, {color: "black", size:30, font:"Carter One"});
+		return;
+	}
+
+	clearInterval(lobbyLoopInterval);
+
+	if (serverUpdateInterval==null && gameLoopInterval==null) {
+		serverUpdateInterval = setInterval(getServerUpdate, 1000/30);
+		gameLoopInterval = setInterval(gameLoop, 1000/50);
+	}
 }
 
 gameLoop = function()
@@ -82,7 +119,5 @@ gameLoop = function()
 var name = document.getElementById("u").innerHTML;
 socket.emit("JoinRequest", name);
 console.log("user is "+ name);
-gameLoop();
 
-setInterval(getServerUpdate, 1000/30);
-setInterval(gameLoop, 1000/50);
+loppyLoopInterval = setInterval(lobbyLoop, 1000);

@@ -66,14 +66,25 @@ var Picasso = function()
         ctx.fillRect(bbox.x + ox, bbox.y + oy, bbox.width, bbox.height);
     }
 
-    Picasso.DrawText = function(ctx, text, x, y, offset) {
+    Picasso.DrawText = function(ctx, text, x, y, offset, options) {
     var ox=0, oy=0;
 		if (offset==null) {
 			ox = ((document.getElementById("canvas").width/2)-240);
 			oy = 50;
 		}
+		var before = ctx.font;
+		var col = ctx.fillStyle;
+
+		if (options!=null) {
+			ctx.font = options.size+"px "+options.font;
+			ctx.fillStyle = options.color;
+		}
+
+
 
 		ctx.fillText(text, x+ox, y+oy);
+		ctx.font = before;
+		ctx.fillStyle = col;
     }
 	
 	Picasso.DrawAnimation = function(ctx, anim, bbox, offset) {
@@ -167,7 +178,7 @@ var Bbox = function(x, y, w, h)
         if (this.Contains(box.x+box.width, box.y))              return true;
         if (this.Contains(box.x+box.width, box.y+box.height))   return true;
         if (this.Contains(box.x, box.y+box.height))             return true;
-
+        
         if (box.Contains(this.x, this.y))                           return true;
         if (box.Contains(this.x+this.width, this.y))                return true;
         if (box.Contains(this.x+this.width, this.y+this.height))    return true;

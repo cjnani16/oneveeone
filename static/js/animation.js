@@ -19,9 +19,9 @@ var Animation = function(src, xf, yf, fps) {
 
     this.timer = 0;
 
-    this.Update = function() { //SHOULD be called 60 times a second... otherwise fps wont be accurate.
+    this.Update = function() { //SHOULD be called 50 times a second... otherwise fps wont be accurate.
         this.timer++;
-        if (this.timer>(60/this.fps))
+        if (this.timer>(50/this.fps))
         {
             this.timer=0;
             if (this.findex.x+1 < this.xframes)
@@ -50,6 +50,8 @@ var Animation = function(src, xf, yf, fps) {
             ox = ((document.getElementById("canvas").width/2)-240);
             oy = 50;
         }
+
+        ctx.drawImage(this.sheet, position.x+ox, position.y+oy, this.fwidth, this.fheight);
 
         ctx.drawImage(this.sheet, this.findex.x*this.fwidth, this.findex.y*this.fheight,
             this.fwidth, this.fheight, position.x+ox, position.y+oy, this.width, this.height);
