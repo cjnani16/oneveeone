@@ -17,9 +17,11 @@ var Arrow = function(start, end, power, pod) {
 }
 
 var Hunter = function(n, p, a) {
+    this.dir=1;
+    this.status=3;
     this.name = n;
     this.hitpoints = 1;
-    this.bbox = new Bbox(p.x, p.y, 32, 32);
+    this.bbox = new Bbox(p.x, p.y, 50, 50);
     this.position = p;
     this.velocity = new Vector2(0,0);
 	this.walkSpeed = 3;
@@ -28,12 +30,47 @@ var Hunter = function(n, p, a) {
     this.podIndex=0;
     this.uuid;
 
-    this.sprite = new Animation("sprites/hunter.png", 2, 1, 2);
-    this.sprite.width = this.bbox.width;
-    this.sprite.height = this.bbox.height;
+    this.sprites = [    [new Animation("sprites/hunteridlel.png", 12, 1, 15),   new Animation("sprites/hunteridler.png", 12, 1, 15)],     //0=idle
+                        [new Animation("sprites/hunterdrawl.png", 20, 1, 0),    new Animation("sprites/hunterdrawr.png", 20, 1, 0)],      //1=draw
+                        [new Animation("sprites/huntermovel.png", 12, 1, 15),   new Animation("sprites/huntermover.png", 12, 1, 15)],     //2=move
+                        [new Animation("sprites/hunterjumpl.png", 1, 1, 0),     new Animation("sprites/hunterjumpr.png", 1, 1, 0)],       //3=jump
+                        [new Animation("sprites/hunterfalll.png", 1, 1, 0),     new Animation("sprites/hunterfallr.png", 1, 1, 0)]]       //4=fall
+
+    for (var i=0; i<5; i++) for (var j=0; j<2; j++) {
+        this.sprites[i][j].width = this.bbox.width;
+        this.sprites[i][j].height = this.bbox.height;
+    }
 
     this.a_drawing = false;
     this.a_power = 0;
+
+    this.SetStatus = function() {
+
+        if (this.a_drawing) {
+            this.status=1;
+            this.sprites[1][0].findex.x= (Math.floor((this.a_power/24)*this.sprites[1][0].xframes));
+            this.sprites[1][1].findex.x= (Math.floor((this.a_power/24)*this.sprites[1][1].xframes));
+            return;
+        }
+
+        if (this.velocity.x == 0 && Math.floor(Math.abs(this.velocity.y))<=1) {
+            this.status=0; return;
+        }
+
+        if (this.velocity.y<0) {
+            this.status=3; return;
+        }
+
+        if (this.velocity.y>0) {
+            this.status=4; return;
+        }
+
+        if (Math.abs(this.velocity.x)>0) {
+            this.status=2;
+        }
+    }
+
+    this.SetStatus();
 
     this.Step = function()
     {
@@ -44,7 +81,10 @@ var Hunter = function(n, p, a) {
             this.a_power += (0.5);
         }
 
-        this.sprite.Update();
+        this.SetStatus();
+
+        console.log("["+this.status+"]"+"["+this.dir+"]");
+        this.sprites[this.status][this.dir].Update();
     }
 
     this.Render = function(ctx) {
@@ -52,7 +92,8 @@ var Hunter = function(n, p, a) {
             Picasso.DrawBB(ctx, this.bbox, "red");
         else Picasso.DrawBB(ctx, this.bbox, "blue");
 
-        this.sprite.Render(ctx, this.bbox);
+        this.sprites[this.status][this.dir].Render(ctx, this.bbox);
+
         Picasso.DrawText(ctx, ""+this.name, this.position.x, this.position.y);
 
         if (this.a_drawing) {

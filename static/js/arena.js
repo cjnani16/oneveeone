@@ -12,6 +12,8 @@ var Arena = function()
     this.arrow_count = 0;
     this.a_image = new Image(10,10);
     this.a_image.src = "sprites/arrow.png";
+    this.a_imagestill = new Image(10,10);
+    this.a_imagestill.src = "sprites/arrowstill.png";
 	
 	this.IsHitting = function(obj) {//TODO FIX
 		return this.pods[obj.podIndex].map.CheckCollision(new Bbox(obj.bbox.x, obj.bbox.y, obj.bbox.width, obj.bbox.height));
@@ -43,20 +45,23 @@ var Arena = function()
         var temp = new Bbox(0,0,0,0);
 
         if (this.mainPlayer.podIndex+1 < this.pods.length) { //draw pod preview (right)
-            temp.Set((this.pods[this.mainPlayer.podIndex].width),90,300,300);
-            Picasso.DrawBB(ctx, temp, "orange");
+            temp.Set((this.pods[this.mainPlayer.podIndex].width)-40,0,20,this.pods[this.mainPlayer.podIndex].height);
+            Picasso.DrawBB(ctx, temp, "orange",true);
         }
 
         if (this.mainPlayer.podIndex-1 >= 0) { //draw pod preview (left)
-            temp.Set(-300,90,300,300);
-            Picasso.DrawBB(ctx, temp, "brown");
+            temp.Set(0,0,20,this.pods[this.mainPlayer.podIndex].height);
+            Picasso.DrawBB(ctx, temp, "brown",true);
         }
 
         this.pods[this.mainPlayer.podIndex].Render(ctx); //draw pod
-
         for (var i = 0; i < this.arrow_count; i++) //draw arrows
         {
             if (this.quiver[i].podIndex == this.mainPlayer.podIndex) {
+                if(this.quiver[i].velocity.x == 0 && this.quiver[i].velocity.y == 0) {
+                    Picasso.DrawImageRot(ctx, this.quiver[i].position, this.a_imagestill, this.quiver[i].direction);
+                    return;
+                }
                 Picasso.DrawImageRot(ctx, this.quiver[i].position, this.a_image, this.quiver[i].direction);
             }
 

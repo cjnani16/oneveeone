@@ -2,10 +2,11 @@
  * Created by crawf_000 on 1/31/2016.
  */
 Pod = function(num) {
-    this.width              = this.height = 480;
+    this.width              = 960;
+    this.height             = 600;
     this.name               = "Pod " + num;
     this.bg                 = new Bbox(0,0,this.width, this.height);
-	this.map				= new TileMap(this.width, this.height, 15, 15);
+	this.map				= new TileMap(this.width, this.height, 19.2, 12);
 
     this.Step = function(box) {this.map.Step(box);}
     this.Render = function(ctx)

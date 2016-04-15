@@ -24,8 +24,8 @@ var Picasso = function()
     {
         var ox=0, oy=0;
         if (offset==null) {
-            ox = ((document.getElementById("canvas").width/2)-240);
-            oy = 50;
+            ox = 20;
+            oy = 0;
         }
 
         direction-=Math.PI/2; //random shit so that they work aith atan2. Make all images point RIGHT
@@ -57,8 +57,8 @@ var Picasso = function()
     {
 	var ox=0, oy=0;
 		if (offset==null) {
-			ox = ((document.getElementById("canvas").width/2)-240);
-			oy = 50;
+			ox = 20;
+			oy = 0;
 		}
 		
 		
@@ -69,8 +69,8 @@ var Picasso = function()
     Picasso.DrawText = function(ctx, text, x, y, offset, options) {
     var ox=0, oy=0;
 		if (offset==null) {
-			ox = ((document.getElementById("canvas").width/2)-240);
-			oy = 50;
+			ox = 20;
+			oy = 0;
 		}
 		var before = ctx.font;
 		var col = ctx.fillStyle;
@@ -202,14 +202,13 @@ USER INPUT HANDLING
 getMousePositionInCanvas = function(canvas, event) {
 	var rect = canvas.getBoundingClientRect();
 	var mpos = new Vector2(0,0);
-	mpos.x = -(canvas.width/2)+Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)+240;
-	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height) - 50;
+	mpos.x = -(canvas.width/2)+Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)+20;
+	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height);
 
 	return mpos;
 }
 
 var InputHandler = function(canv, player) {
-	var dir = 0;
 	var listener = new window.keypress.Listener(canv);
 
 	listener.simple_combo("w", function() {
@@ -224,8 +223,8 @@ var InputHandler = function(canv, player) {
 
 		//client side-prediction
 		switch (event.keyCode) {
-			case 65: socket.emit("Ikd", code); player.velocity.x=-4; dir=-1; break;
-			case 68: socket.emit("Ikd", code); player.velocity.x=4; dir=1; break;
+			case 65: socket.emit("Ikd", code); player.velocity.x=-4; player.dir=0; break;
+			case 68: socket.emit("Ikd", code); player.velocity.x=4; player.dir=1; break;
 		}
 	}, false);
 	
@@ -235,8 +234,8 @@ var InputHandler = function(canv, player) {
 
 		//client side prediction!
 		switch (event.keyCode) {
-			case 65: socket.emit("Iku", code); if (dir==-1) player.velocity.x=0; break;
-			case 68: socket.emit("Iku", code); if (dir==1) player.velocity.x=0; break;
+			case 65: socket.emit("Iku", code); if (player.dir==0) player.velocity.x=0; break;
+			case 68: socket.emit("Iku", code); if (player.dir==1) player.velocity.x=0; break;
 		}
 	}, false);
 	

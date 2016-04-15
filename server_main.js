@@ -302,10 +302,11 @@ var TileMap = function(w,h,ta,td)
 
 Pod = function(num) 
 {
-    this.width              = this.height = 480;
+    this.width              = 960;
+    this.height 			= 600;
     this.name               = "Pod " + num;
     this.bg                 = new Bbox(0,0,this.width, this.height);
-	this.map				= new TileMap(this.width, this.height, 15, 15);
+	this.map				= new TileMap(this.width, this.height, 19.2, 12);
 
     this.Step = function(players) {
     	this.map.Step(players);
@@ -342,7 +343,7 @@ var Hunter = function(n, p, a)
 {
     this.name = n;
     this.hitpoints = 1;
-    this.bbox = new Bbox(p.x, p.y, 32, 32);
+    this.bbox = new Bbox(p.x, p.y, 50, 50);
     this.position = p;
     this.velocity = new Vector2(0,0);
 	this.walkSpeed = 3;

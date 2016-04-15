@@ -20,6 +20,8 @@ var Animation = function(src, xf, yf, fps) {
     this.timer = 0;
 
     this.Update = function() { //SHOULD be called 50 times a second... otherwise fps wont be accurate.
+        if (this.fps==0) {return;}//0fps = no animation
+
         this.timer++;
         if (this.timer>(50/this.fps))
         {
@@ -40,20 +42,18 @@ var Animation = function(src, xf, yf, fps) {
             }
 
         }
-
-        return new Vector2();
     }
 
     this.Render = function(ctx, position, offset) {
         var ox=0, oy=0;
         if (offset==null) {
-            ox = ((document.getElementById("canvas").width/2)-240);
-            oy = 50;
+            ox = 20;
+            oy = 0;
         }
 
-        ctx.drawImage(this.sheet, position.x+ox, position.y+oy, this.fwidth, this.fheight);
-
         ctx.drawImage(this.sheet, this.findex.x*this.fwidth, this.findex.y*this.fheight,
-            this.fwidth, this.fheight, position.x+ox, position.y+oy, this.width, this.height);
+            this.fwidth, this.fheight, position.x+ox, position.y+oy, this.fwidth, this.fheight);
+
+        Picasso.DrawText(ctx, "("+this.findex.x+","+this.findex.y+"):"+this.sheet.src, position.x, position.y-this.height); //TODO Debug purposes
     }
 }
