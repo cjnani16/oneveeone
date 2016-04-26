@@ -12,116 +12,13 @@ function Create2DArray(rows) {
   return arr;
  }
 
-/**
- * Drawing and color
- */
- 
-var Picasso = function()
-{
-
-}
-    Picasso.DrawImageRot = function(ctx, position, image, direction, offset)
-    {
-        var ox=0, oy=0;
-        if (offset==null) {
-            ox = 20;
-            oy = 0;
-        }
-
-        direction-=Math.PI/2; //random shit so that they work aith atan2. Make all images point RIGHT
-        direction*=-1;
-
-        // save the context
-        ctx.save();
-
-        // move the origin
-        ctx.translate(position.x+ox, position.y+oy);
-
-        // now move across and down half the
-        // width and height of the image
-        ctx.translate(image.width/2, image.height/2);
-
-        // rotate around center point
-        ctx.rotate(direction);
-
-        // then draw the image back and up
-        ctx.drawImage(image, -image.width/2, -image.height/2);
-
-        // and restore the coordinate system
-        ctx.restore();
-
-        //...whew... -jnani
-    }
-
-    Picasso.DrawBB = function(ctx, bbox, color, offset)
-    {
-	var ox=0, oy=0;
-		if (offset==null) {
-			ox = 20;
-			oy = 0;
-		}
-		
-		
-        ctx.fillStyle = color;
-        ctx.fillRect(bbox.x + ox, bbox.y + oy, bbox.width, bbox.height);
-    }
-
-    Picasso.DrawText = function(ctx, text, x, y, offset, options) {
-    var ox=0, oy=0;
-		if (offset==null) {
-			ox = 20;
-			oy = 0;
-		}
-		var before = ctx.font;
-		var col = ctx.fillStyle;
-
-		if (options!=null) {
-			ctx.font = options.size+"px "+options.font;
-			ctx.fillStyle = options.color;
-		}
-
-
-
-		ctx.fillText(text, x+ox, y+oy);
-		ctx.font = before;
-		ctx.fillStyle = col;
-    }
-	
-	Picasso.DrawAnimation = function(ctx, anim, bbox, offset) {
-		anim.Render(ctx, bbox);
-	}
-	
-var Color = function(r, g, b, a) {
-	this.r = r != null ? r : 255;
-	this.g = g != null ? g : 255;
-	this.b = b != null ? b : 255;
-	this.a = a != null ? a : 1;
-	
-	this.ToStandard = function(noAlpha) {
-		if (noAlpha == null || noAlpha)
-			return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
-		else
-			return "rgb(" + this.r + "," + this.g + "," + this.b + ")";
-	}
-	
-	this.Blue = new Color(0,0,255,1);
-	this.Red = new Color(255,0,0,1);
-	this.Green = new Color(0,255,0,1);
-	this.Black = new Color(0,0,0,1);
-	this.White = new Color(255,255,255,1);
-	this.Purple = new Color(255,0,255,1);
-}
-	
-/**
+ /**
  * VECTOR2
  */
 var Vector2 = function(x, y) {
     this.x = x;
     this.y = y;
 
-    /**
-     * @return {number}
-     */
     this.Direction = function() {
         return Math.atan2(this.x, this.y);
     }
@@ -196,14 +93,148 @@ var Bbox = function(x, y, w, h)
 };
 
 /*
+* Game Camera
+*/
+var GameCamera = function(target, win_w, win_h, gap_w, gap_h) {
+	this.target = target;
+	this.gap = new Bbox(0,0, gap_w, gap_h);
+	this.window = new Bbox(0,0, win_w, win_h);
+	this.windowspeed = 3;
+
+	this.Update = function() {
+		//center gap on target
+		this.gap.x = this.target.x + (this.target.width / 2) - (this.gap.width / 2);
+		this.gap.y = this.target.y + (this.target.height / 2) - (this.gap.height / 2);
+
+		//move camera if out of gap
+		if (this.gap.x < this.window.x) this.window.x -= this.windowspeed;
+		if (this.gap.y < this.window.y) this.window.y -= this.windowspeed; //left and up
+
+		if ((this.gap.x + this.gap.width) > (this.window.x + this.window.width)) this.window.x += this.windowspeed;
+		if ((this.gap.y + this.gap.height) > (this.window.y + this.window.height)) this.window.y += this.windowspeed; //right and down
+	}
+}
+
+/**
+ * Drawing and color
+ */
+ 
+var Picasso = function()
+{
+
+}
+    Picasso.DrawImageRot = function(ctx, position, image, direction, offset)
+    {
+        var ox=-cam.window.x, oy=-cam.window.y;
+        if (offset==null) {
+            ox += 20;
+            oy += 0;
+        }
+        else if (!offset) {
+        	ox=oy=0;
+        }
+
+        direction-=Math.PI/2; //random shit so that they work aith atan2. Make all images point RIGHT
+        direction*=-1;
+
+        // save the context
+        ctx.save();
+
+        // move the origin
+        ctx.translate(position.x+ox, position.y+oy);
+
+        // now move across and down half the
+        // width and height of the image
+        ctx.translate(image.width/2, image.height/2);
+
+        // rotate around center point
+        ctx.rotate(direction);
+
+        // then draw the image back and up
+        ctx.drawImage(image, -image.width/2, -image.height/2);
+
+        // and restore the coordinate system
+        ctx.restore();
+
+        //...whew... -jnani
+    }
+
+    Picasso.DrawBB = function(ctx, bbox, color, offset)
+    {
+	var ox=-cam.window.x, oy=-cam.window.y;
+		if (offset==null) {
+			ox += 20;
+			oy += 0;
+		}
+        else if (!offset) {
+        	ox=oy=0;
+        }
+		
+		
+        ctx.fillStyle = color;
+        ctx.fillRect(bbox.x + ox, bbox.y + oy, bbox.width, bbox.height);
+    }
+
+    Picasso.DrawText = function(ctx, text, x, y, offset, options) {
+    var ox=0, oy=0;//TODO offset with cam?
+		if (offset==null) {
+			ox += 20;
+			oy += 0;
+		}
+        else if (!offset) {
+        	ox=oy=0;
+        }
+		var before = ctx.font;
+		var col = ctx.fillStyle;
+
+		if (options!=null) {
+			ctx.font = options.size+"px "+options.font;
+			ctx.fillStyle = options.color;
+		}
+
+
+
+		ctx.fillText(text, x+ox, y+oy);
+		ctx.font = before;
+		ctx.fillStyle = col;
+    }
+	
+	Picasso.DrawAnimation = function(ctx, anim, bbox, offset) {
+		anim.Render(ctx, bbox, offset);
+	}
+	
+var Color = function(r, g, b, a) {
+	this.r = r != null ? r : 255;
+	this.g = g != null ? g : 255;
+	this.b = b != null ? b : 255;
+	this.a = a != null ? a : 1;
+	
+	this.ToStandard = function(noAlpha) {
+		if (noAlpha == null || noAlpha)
+			return "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
+		else
+			return "rgb(" + this.r + "," + this.g + "," + this.b + ")";
+	}
+	
+	this.Blue = new Color(0,0,255,1);
+	this.Red = new Color(255,0,0,1);
+	this.Green = new Color(0,255,0,1);
+	this.Black = new Color(0,0,0,1);
+	this.White = new Color(255,255,255,1);
+	this.Purple = new Color(255,0,255,1);
+}
+
+/*
 USER INPUT HANDLING
 */
 
 getMousePositionInCanvas = function(canvas, event) {
 	var rect = canvas.getBoundingClientRect();
 	var mpos = new Vector2(0,0);
-	mpos.x = -(canvas.width/2)+Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)+20;
+	mpos.x = Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)-20;
 	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height);
+
+	document.getElementById("pos").innerHTML = mpos.x+" | "+mpos.y;
 
 	return mpos;
 }

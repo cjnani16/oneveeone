@@ -21,7 +21,7 @@ var Hunter = function(n, p, a) {
     this.status=3;
     this.name = n;
     this.hitpoints = 1;
-    this.bbox = new Bbox(p.x, p.y, 50, 50);
+    this.bbox = new Bbox(p.x, p.y, 100, 100);
     this.position = p;
     this.velocity = new Vector2(0,0);
 	this.walkSpeed = 3;
@@ -30,11 +30,11 @@ var Hunter = function(n, p, a) {
     this.podIndex=0;
     this.uuid;
 
-    this.sprites = [    [new Animation("sprites/hunteridlel.png", 12, 1, 15),   new Animation("sprites/hunteridler.png", 12, 1, 15)],     //0=idle
-                        [new Animation("sprites/hunterdrawl.png", 20, 1, 0),    new Animation("sprites/hunterdrawr.png", 20, 1, 0)],      //1=draw
-                        [new Animation("sprites/huntermovel.png", 12, 1, 15),   new Animation("sprites/huntermover.png", 12, 1, 15)],     //2=move
-                        [new Animation("sprites/hunterjumpl.png", 1, 1, 0),     new Animation("sprites/hunterjumpr.png", 1, 1, 0)],       //3=jump
-                        [new Animation("sprites/hunterfalll.png", 1, 1, 0),     new Animation("sprites/hunterfallr.png", 1, 1, 0)]]       //4=fall
+    this.sprites = [    [new Animation("sprites/hunteridlel.png", 12, 1, 50, 50, 15),   new Animation("sprites/hunteridler.png", 12, 1, 100, 100, 15)],     //0=idle
+                        [new Animation("sprites/hunterdrawl.png", 20, 1, 50, 50, 0),    new Animation("sprites/hunterdrawr.png", 20, 1, 50, 50, 0)],      //1=draw
+                        [new Animation("sprites/huntermovel.png", 12, 1, 50, 50, 15),   new Animation("sprites/huntermover.png", 12, 1, 50, 50, 15)],     //2=move
+                        [new Animation("sprites/hunterjumpl.png", 1, 1, 50, 50, 0),     new Animation("sprites/hunterjumpr.png", 1, 1, 50, 50, 0)],       //3=jump
+                        [new Animation("sprites/hunterfalll.png", 1, 1, 50, 50, 0),     new Animation("sprites/hunterfallr.png", 1, 1, 50, 50, 0)]]       //4=fall
 
     for (var i=0; i<5; i++) for (var j=0; j<2; j++) {
         this.sprites[i][j].width = this.bbox.width;
@@ -83,19 +83,20 @@ var Hunter = function(n, p, a) {
 
         this.SetStatus();
 
-        console.log("["+this.status+"]"+"["+this.dir+"]");
+        //console.log("["+this.status+"]"+"["+this.dir+"]");
         this.sprites[this.status][this.dir].Update();
     }
 
     this.Render = function(ctx) {
         if (arena.IsHitting(this))
             Picasso.DrawBB(ctx, this.bbox, "red");
-        else Picasso.DrawBB(ctx, this.bbox, "blue");
+        //else Picasso.DrawBB(ctx, this.bbox, "blue");
 
         this.sprites[this.status][this.dir].Render(ctx, this.bbox);
 
         Picasso.DrawText(ctx, ""+this.name, this.position.x, this.position.y);
 
+        //charge bar
         if (this.a_drawing) {
             this.temp.Set(0, 460, this.a_power*20, 20);
             ctx.fillText(""+this.a_power,0,440);

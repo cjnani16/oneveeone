@@ -242,14 +242,6 @@ var TileMap = function(w,h,ta,td)
 	this.tiles[5][7]=1;
 	this.tiles[5][8]=2;
 	this.tiles[5][9]=1;
-	this.tiles[6][10]=1;
-	this.tiles[7][11]=1;
-	this.tiles[8][12]=1;
-	this.tiles[9][13]=1;
-	this.tiles[9][14]=1;
-	this.tiles[9][15]=1;
-	this.tiles[9][16]=1;
-	this.tiles[9][17]=1;
 	
 	this.CheckCollision = function(box) {
 		var temp = new Bbox(0,0,0,0);
@@ -302,11 +294,11 @@ var TileMap = function(w,h,ta,td)
 
 Pod = function(num) 
 {
-    this.width              = 960;
-    this.height 			= 600;
+    this.width              = 1000;
+    this.height 			= 1200;
     this.name               = "Pod " + num;
     this.bg                 = new Bbox(0,0,this.width, this.height);
-	this.map				= new TileMap(this.width, this.height, 19.2, 12);
+	this.map				= new TileMap(this.width, this.height, 10, 12);
 
     this.Step = function(players) {
     	this.map.Step(players);
@@ -343,7 +335,7 @@ var Hunter = function(n, p, a)
 {
     this.name = n;
     this.hitpoints = 1;
-    this.bbox = new Bbox(p.x, p.y, 50, 50);
+    this.bbox = new Bbox(p.x, p.y, 100, 100);
     this.position = p;
     this.velocity = new Vector2(0,0);
 	this.walkSpeed = 3;

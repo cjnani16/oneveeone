@@ -31,14 +31,6 @@ var TileMap = function(w,h,ta,td) {
 	this.tiles[5][7]=1;
 	this.tiles[5][8]=2;
 	this.tiles[5][9]=1;
-	this.tiles[6][10]=1;
-	this.tiles[7][11]=1;
-	this.tiles[8][12]=1;
-	this.tiles[9][13]=1;
-	this.tiles[9][14]=1;
-	this.tiles[9][15]=1;
-	this.tiles[9][16]=1;
-	this.tiles[9][17]=1;
 	
 	this.CheckCollision = function(box) {
 		var temp = new Bbox(0,0,0,0);

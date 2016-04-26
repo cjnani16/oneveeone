@@ -2,14 +2,14 @@
  * Created by crawf_000 on 2/23/2016.
  */
 
-var Animation = function(src, xf, yf, fps) {
+var Animation = function(src, xf, yf, fw, fh, fps) {
 
     this.sheet = new Image();
     this.sheet.src = src;
     this.xframes = xf;
     this.yframes = yf;
-    this.fwidth = Math.floor(this.sheet.width/xf);
-    this.fheight = Math.floor(this.sheet.height/yf);
+    this.fwidth = fw;
+    this.fheight = fh;
 
     this.findex = new Vector2(0,0);
     this.height = this.sheet.height;
@@ -45,15 +45,17 @@ var Animation = function(src, xf, yf, fps) {
     }
 
     this.Render = function(ctx, position, offset) {
-        var ox=0, oy=0;
+        var ox=-cam.window.x, oy=-cam.window.y;
         if (offset==null) {
-            ox = 20;
-            oy = 0;
+            ox += 20;
+            oy += 0;
         }
 
-        ctx.drawImage(this.sheet, this.findex.x*this.fwidth, this.findex.y*this.fheight,
-            this.fwidth, this.fheight, position.x+ox, position.y+oy, this.fwidth, this.fheight);
+        //ctx.drawImage(this.sheet, position.x, position.y); //for debug
 
-        Picasso.DrawText(ctx, "("+this.findex.x+","+this.findex.y+"):"+this.sheet.src, position.x, position.y-this.height); //TODO Debug purposes
+        ctx.drawImage(this.sheet, this.findex.x*this.fwidth, this.findex.y*this.fheight,
+            this.fwidth, this.fheight, position.x+ox, position.y+oy, this.width, this.height);
+
+        Picasso.DrawText(ctx, "["+this.fwidth+" | "+this.fheight+"] @ ("+this.findex.x+","+this.findex.y+"):"+this.sheet.src, position.x+ox, position.y-this.height+oy); //TODO Debug purposes
     }
 }

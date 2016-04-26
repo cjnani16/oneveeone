@@ -2,7 +2,7 @@
  * Created by crawf_000 on 1/26/2016.
  */
 var canvas          = document.getElementById("canvas");
-canvas.width        = 1000;
+canvas.width        = 1040;
 canvas.height       = 600;
 canvas.style.width  = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
@@ -13,6 +13,8 @@ var arena = new Arena();
 var inputh;
 
 var origin_x = (canvas.width/2)-240;
+
+var cam = new GameCamera(arena.mainPlayer.bbox, 960, 600, 300,300);
 
 var gotid=false;
 var matchBegun=false;
@@ -108,6 +110,7 @@ gameLoop = function()
 	physics(arena.otherPlayer, false);
 
 	arena.Step();
+	cam.Update();
 
 	Render();
 
