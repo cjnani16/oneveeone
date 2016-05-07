@@ -14,7 +14,7 @@ var inputh;
 
 var origin_x = (canvas.width/2)-240;
 
-var cam = new GameCamera(arena.mainPlayer.bbox, 1040, 600, 300,300);
+var cam = new GameCamera(arena.mainPlayer.bbox, 1040, 600, 600,500);
 
 var gotid=false;
 var matchBegun=false;
