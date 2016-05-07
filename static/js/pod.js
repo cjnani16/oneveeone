@@ -11,7 +11,11 @@ Pod = function(num) {
     this.Step = function(box) {this.map.Step(box);}
     this.Render = function(ctx)
     {
-        Picasso.DrawBB(ctx, this.bg, "gray"); //draw pod bg
+        this.bg.width = this.width;
+        this.bg.height = this.height;
+        Picasso.DrawBB(ctx, this.bg, "#662900"); //draw pod bg
+        var sky = new Bbox(0,-500, this.width, 500);
+        Picasso.DrawBB(ctx, sky, "#1aa3ff"); //draw pod bg
         this.map.Render(ctx) //draw tilemap
         ctx.fillText(this.name,550,40); //draw pod name
 

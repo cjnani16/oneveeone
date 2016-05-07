@@ -56,6 +56,6 @@ var Animation = function(src, xf, yf, fw, fh, fps) {
         ctx.drawImage(this.sheet, this.findex.x*this.fwidth, this.findex.y*this.fheight,
             this.fwidth, this.fheight, position.x+ox, position.y+oy, this.width, this.height);
 
-        Picasso.DrawText(ctx, "["+this.fwidth+" | "+this.fheight+"] @ ("+this.findex.x+","+this.findex.y+"):"+this.sheet.src, position.x+ox, position.y-this.height+oy); //TODO Debug purposes
+        Picasso.DrawText(ctx, "["+this.fwidth+" | "+this.fheight+"] @ ("+this.findex.x+","+this.findex.y+"):"+this.sheet.src, position.x, position.y-this.height); //TODO Debug purposes
     }
 }

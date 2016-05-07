@@ -58,12 +58,12 @@ var Arena = function()
         }
 
         if (this.mainPlayer.podIndex+1 < this.pods.length) { //draw pod preview (right)
-            temp.Set((this.pods[this.mainPlayer.podIndex].width)+20,0,20,this.pods[this.mainPlayer.podIndex].height);
+            temp.Set((cam.window.width)-20,0,20,cam.window.height);
             Picasso.DrawBB(ctx, temp, "orange",false);
         }
 
         if (this.mainPlayer.podIndex-1 >= 0) { //draw pod preview (left)
-            temp.Set(0,0,20,this.pods[this.mainPlayer.podIndex].height);
+            temp.Set(0,0,20,cam.window.height);
             Picasso.DrawBB(ctx, temp, "brown",false);
         }
     }

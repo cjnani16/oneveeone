@@ -4,6 +4,14 @@
 *
 */
 
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive)
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var sign = function(x) {
  return x > 0 ? 1 : x < 0 ? -1 : 0; 
 }
@@ -227,21 +235,19 @@ var TileMap = function(w,h,ta,td)
 		this.tiles[i] = [];
 		for (var k=0;k<this.tilesacross;k++)
 		{
-			this.tiles[i][k] = 0;
+			this.tiles[i][k] = 1;
 		}
 	}
-	
-	this.tiles[5][0]=1; //test code for a simple map, TODO read these from files
-	this.tiles[5][1]=2;
-	this.tiles[5][2]=1;
-	this.tiles[5][3]=2;
-	this.tiles[4][3]=1;
-	this.tiles[5][4]=1;
-	this.tiles[5][5]=1;
-	this.tiles[5][6]=2;
-	this.tiles[5][7]=1;
-	this.tiles[5][8]=2;
-	this.tiles[5][9]=1;
+
+	this.packet = {
+		t: this.tiles,
+		ta: this.tilesacross,
+		td: this.tilesdown,
+		w: this.width,
+		h: this.height,
+		tw: this.tilewidth,
+		th: this.tileheight
+	};
 	
 	this.CheckCollision = function(box) {
 		var temp = new Bbox(0,0,0,0);
@@ -280,10 +286,80 @@ var TileMap = function(w,h,ta,td)
 		}
 	};
 
-	this.Render = function (ctx)
-	{
-		//removed
-	};
+	this.Carve = function(startx, starty) {
+		position = new Vector2(startx, starty);
+		stack = new Array();
+		this.tiles[position.x][position.y] = 0;
+
+		stack.push(new Vector2(position.x, position.y)); //runners to your marks
+		while (stack[0]!=undefined) {//get set
+			//console.log("loop-1");
+			var dir = getRandomInt(0,3);
+			var dirs = [ 0,1,2,3 ];
+
+			  	for (var i = dirs.length - 1; i >= 0; i--) {
+			        var j = Math.floor(Math.random() * (i + 1));
+			        var temp = dirs[i];
+			        dirs[i] = dirs[j];
+			        dirs[j] = temp;
+			        //console.log("loop0");
+		    	}
+		    	//console.log(dirs);
+
+			var worked=false;
+			loop:
+			for (var h=0; h<dirs.length; h++) {
+				//console.log("loop1");
+				switch (dirs[h]) {//go!
+					case 0: //right
+						if (position.x+2 < this.tilesacross && this.tiles[position.x+2][position.y]==1) {
+							this.tiles[position.x+1][position.y] = 0;
+							this.tiles[position.x+2][position.y] = 0;
+							position.x += 2;
+							stack.push(new Vector2(position.x, position.y));
+							worked=true;
+							continue loop;
+						}
+					case 1: //down
+						if (position.y+2 < this.tilesdown && this.tiles[position.x][position.y+2]==1) {
+							this.tiles[position.x][position.y+1] = 0;
+							this.tiles[position.x][position.y+2] = 0;
+							position.y += 2;
+							stack.push(new Vector2(position.x, position.y));
+							worked=true;
+							continue loop;
+						}
+					case 2: //left
+						if (position.x-2 >= 0 && this.tiles[position.x-2][position.y]==1 ) {
+							this.tiles[position.x-1][position.y] = 0;
+							this.tiles[position.x-2][position.y] = 0;
+							position.x -= 2;
+							stack.push(new Vector2(position.x, position.y));
+							worked=true;
+							continue loop;
+						}
+					case 3: //up
+						if (position.y-2 >= 0 && this.tiles[position.x][position.y-2]==1 ) {
+							this.tiles[position.x][position.y-1] = 0;
+							this.tiles[position.x][position.y-2] = 0;
+							position.y -= 2;
+							stack.push(new Vector2(position.x, position.y));
+							worked=true;
+							continue loop;
+						}
+				}
+			}
+
+			if (!worked) {
+				v2 = stack.pop();
+				position.x = v2.x;
+				position.y = v2.y;
+			}
+		}
+
+		this.tiles[0][1] = 0;
+		this.tiles[0][this.tilesacross-2] = 0;
+	}
 }
 
 /*
@@ -294,11 +370,11 @@ var TileMap = function(w,h,ta,td)
 
 Pod = function(num) 
 {
-    this.width              = 1000;
-    this.height 			= 1200;
+    this.width              = 2100;
+    this.height 			= 2500;
     this.name               = "Pod " + num;
     this.bg                 = new Bbox(0,0,this.width, this.height);
-	this.map				= new TileMap(this.width, this.height, 10, 12);
+	this.map				= new TileMap(this.width, this.height, 21, 25);
 
     this.Step = function(players) {
     	this.map.Step(players);
@@ -315,16 +391,16 @@ Pod = function(num)
 *
 */
 
-var Arrow = function(start, end, power, pod, pname) 
+var Arrow = function(start, end, power, pod, pid) 
 {
     this.position = new Vector2(start.x, start.y);
     this.podIndex = pod;
-    this.name = pname;
+    this.id = pid;
 
     var xcomp = end.x-start.x;
     var ycomp = end.y-start.y;
     var mag = Math.sqrt(Math.pow(xcomp,2) + Math.pow(ycomp,2));
-    var launchvel = power;
+    var launchvel = 2*power;
 
     this.velocity = new Vector2(xcomp/mag*launchvel,ycomp/mag*launchvel);
     this.bbox = new Bbox(this.position.x, this.position.y, 10, 10);
@@ -335,7 +411,7 @@ var Hunter = function(n, p, a)
 {
     this.name = n;
     this.hitpoints = 1;
-    this.bbox = new Bbox(p.x, p.y, 100, 100);
+    this.bbox = new Bbox(p.x, p.y, 80, 80);
     this.position = p;
     this.velocity = new Vector2(0,0);
 	this.walkSpeed = 3;
@@ -387,7 +463,7 @@ var Hunter = function(n, p, a)
 
     this.Shoot = function(target) {
         if (this.a_power==0) return;
-        var arrow = new Arrow(new Vector2(this.position.x, this.position.y), target, this.a_power, this.podIndex, this.name);
+        var arrow = new Arrow(new Vector2(this.position.x, this.position.y), target, this.a_power, this.podIndex, this.uuid);
         this.arena.arrow_count+=1;
         this.arena.quiver[this.arena.arrow_count-1] = arrow;
         this.a_drawing = false;
@@ -412,9 +488,14 @@ Arena = function(dad)
     this.quiver = {};
     this.arrow_count = 0;
 
+    this.pods[0].map.Carve(1,1);
+    this.pods[1].map.Carve(1,1);
+    this.pods[2].map.Carve(1,1);
+
     this.packet = {
     	quiver: this.quiver,
-    	arrowcount:this.arrow_count
+    	arrowcount:this.arrow_count,
+    	pods: this.pods
     };
 
     this.hasVacancy = function() {
@@ -433,7 +514,8 @@ Arena = function(dad)
     {
     	this.packet = {
     		quiver: this.quiver,
-    		arrowcount:this.arrow_count
+    		arrowcount:this.arrow_count,
+    		pods: this.pods
     	};
 
         for (var i = 0; i < this.numplayers; i++) {
@@ -454,7 +536,7 @@ Arena = function(dad)
             }
 
             for (var p = 0; p < 2; p++) {
-            	if (this.players[p]!=null && this.quiver[i].bbox.Intersects(this.players[p].bbox) && (this.quiver[i].name!=this.players[p].name) && (this.quiver[i].velocity.Length()>0.1) && (this.quiver[i].podIndex == this.players[p].podIndex)) {
+            	if (this.players[p]!=null && this.quiver[i].bbox.Intersects(this.players[p].bbox) && (this.quiver[i].id!=this.players[p].uuid) && (this.quiver[i].velocity.Length()>0.1) && (this.quiver[i].podIndex == this.players[p].podIndex)) {
 
             		io.to(this.match.GetOpponentById(this.players[p].uuid).uuid).emit("MatchEnd", true);
             		io.to(this.players[p].uuid).emit("MatchEnd", false);
@@ -526,7 +608,7 @@ var server = http.listen(port, function() {
 
 /*
 *
-* S E R V E R   L O G I C   /   L O O P   /   N E T C O D E
+* S E R V E R   L O G I C   /   L O O P   /   N E T C O D E   /   M A T C H
 *
 */
 
@@ -620,7 +702,7 @@ io.on('connection', function(socket) {
 
 					foundmatch=true; console.log("match found");
 
-					var h =  new Hunter(name, new Vector2(50,50), matches[i].arena);
+					var h =  new Hunter(name, new Vector2(210,-110), matches[i].arena);
 
 					matches[i].SetPlayer(1,h).uuid = socket.id;
 					socket.join(matches[i].uuid); //put them in the room for their match
@@ -630,6 +712,9 @@ io.on('connection', function(socket) {
 					socket.emit("Alert", "joined a match with an existing player, named " + matches[i].GetPlayerByIndex(0).name);
 					io.to(matches[i].GetOpponentById(socket.id).uuid).emit("Alert", "Player named " + h.name + " joined the match!");
 					io.to(matches[i].uuid).emit("LateJoin");
+
+					io.to(matches[i].GetOpponentById(socket.id).uuid).emit("EnemyName", h.name);
+					socket.emit("EnemyName", matches[i].GetOpponentById(socket.id).name);
 				}
 			}
 
@@ -639,7 +724,7 @@ io.on('connection', function(socket) {
 				runningMatches++;
 				matches[runningMatches-1] = new Match();
 
-				var h =  new Hunter(name, new Vector2(100,50), matches[runningMatches-1].arena);
+				var h =  new Hunter(name, new Vector2(510,-110), matches[runningMatches-1].arena);
 
 				matches[runningMatches-1].SetPlayer(0,h, matches[i].arena).uuid = socket.id;
 				socket.join(matches[runningMatches-1].uuid); //put them in the new, empty match
@@ -662,8 +747,9 @@ io.on('connection', function(socket) {
 						if (socket.match.GetOpponentById(socket.id).podIndex == socket.match.GetPlayerById(socket.id).podIndex)
 							socket.emit("TheirState", socket.match.GetOpponentById(socket.id).packet);
 
-					if (socket.match.arena != null)
-					socket.emit("ArenaState", socket.match.arena.packet);
+					if (socket.match.arena != null) {
+						socket.emit("ArenaState", socket.match.arena.packet);
+					}
 				}
 			} catch (e) {
 				console.log("error sending match request.");
@@ -676,14 +762,14 @@ io.on('connection', function(socket) {
 		if (socket.match==null) {return;}
 
 		console.log("player jump!");
-		socket.match.GetPlayerById(socket.id).velocity.y = -7;
+		socket.match.GetPlayerById(socket.id).velocity.y = -13;
 	});
 	socket.on('Ikd', function(code) {
 		if (socket.match==null) {return;}
 
 		switch (code) {
-			case 65: socket.match.GetPlayerById(socket.id).velocity.x=-4; socket.match.GetPlayerById(socket.id).dir=-1; break;
-			case 68: socket.match.GetPlayerById(socket.id).velocity.x=4; socket.match.GetPlayerById(socket.id).dir=1; break;
+			case 65: socket.match.GetPlayerById(socket.id).velocity.x=-8; socket.match.GetPlayerById(socket.id).dir=-1; break;
+			case 68: socket.match.GetPlayerById(socket.id).velocity.x=8; socket.match.GetPlayerById(socket.id).dir=1; break;
 		}
 		console.log("player movement");
 	});

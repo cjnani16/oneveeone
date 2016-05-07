@@ -14,17 +14,29 @@ var inputh;
 
 var origin_x = (canvas.width/2)-240;
 
-var cam = new GameCamera(arena.mainPlayer.bbox, 960, 600, 300,300);
+var cam = new GameCamera(arena.mainPlayer.bbox, 1040, 600, 300,300);
 
 var gotid=false;
 var matchBegun=false;
 var serverUpdateInterval, gameLoopInterval, lobbyLoopInterval;
+
+var testt;
+var enemyName, name;
 
 //RECEIVE MESSAGES FROM SERVER
 socket.on("RecvID", function(id) {
 	arena.mainPlayer.id = id;
 	gotid=true;
 	console.log("got my match id! it's "+id);
+});
+
+socket.on("EnemyName", function(n) {
+	enemyName=n;
+
+	if (enemyName!=undefined && name!=undefined) {
+		document.getElementById("matchhead1").innerHTML = ""+name+" vs. "+enemyName;
+		document.title = ""+name+" vs. "+enemyName;
+	}
 });
 
 socket.on("Alert", function(msg) {
@@ -48,12 +60,26 @@ socket.on("TheirState", function(packet) {
 
 socket.on("LateJoin", function() {
 	matchBegun = true;
-	inputh = new InputHandler(canvas, arena.mainPlayer);
+	inputh = new InputHandler(canvas, arena.mainPlayer, cam);
 });
 
 socket.on("ArenaState", function(packet) {
 	arena.quiver = packet.quiver;
 	arena.arrow_count = packet.arrowcount;
+
+	for (var i=0; i<packet.pods.length; i++) {
+		arena.pods[i].map.tiles = packet.pods[i].map.tiles;
+		arena.pods[i].map.width = packet.pods[i].map.width;
+		arena.pods[i].map.tilesacross = packet.pods[i].map.tilesacross;
+		arena.pods[i].map.tilesdown = packet.pods[i].map.tilesdown;
+		arena.pods[i].map.tilewidth = packet.pods[i].map.tilewidth;
+		arena.pods[i].map.tileheight = packet.pods[i].map.tileheight;
+		arena.pods[i].map.height = packet.pods[i].map.height;
+
+		arena.pods[i].width = packet.pods[i].width;
+		arena.pods[i].height = packet.pods[i].height;
+		arena.pods[i].name = packet.pods[i].name;
+	}
 });
 
 socket.on("MatchEnd", function(result) {
@@ -119,7 +145,7 @@ gameLoop = function()
 
 
 //ONCE WE JOIN
-var name = document.getElementById("u").innerHTML;
+name = document.getElementById("u").innerHTML;
 socket.emit("JoinRequest", name);
 console.log("user is "+ name);
 

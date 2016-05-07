@@ -176,7 +176,7 @@ var Picasso = function()
     }
 
     Picasso.DrawText = function(ctx, text, x, y, offset, options) {
-    var ox=0, oy=0;//TODO offset with cam?
+    var ox=-cam.window.x, oy=-cam.window.y;
 		if (offset==null) {
 			ox += 20;
 			oy += 0;
@@ -184,6 +184,7 @@ var Picasso = function()
         else if (!offset) {
         	ox=oy=0;
         }
+        
 		var before = ctx.font;
 		var col = ctx.fillStyle;
 
@@ -228,25 +229,25 @@ var Color = function(r, g, b, a) {
 USER INPUT HANDLING
 */
 
-getMousePositionInCanvas = function(canvas, event) {
+getMousePositionInCanvas = function(canvas, event, camera) {
 	var rect = canvas.getBoundingClientRect();
 	var mpos = new Vector2(0,0);
-	mpos.x = Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)-20;
-	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height);
+	mpos.x = Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)-20 + camera.window.x;
+	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height) + camera.window.y;
 
 	document.getElementById("pos").innerHTML = mpos.x+" | "+mpos.y;
 
 	return mpos;
 }
 
-var InputHandler = function(canv, player) {
+var InputHandler = function(canv, player, camera) {
 	var listener = new window.keypress.Listener(canv);
 
 	listener.simple_combo("w", function() {
 			socket.emit("Ijump");
 
 			//client.. side.. prediction...?
-			player.velocity.y = -7;
+			player.velocity.y = -13;
 	});
 	
 	canv.addEventListener('keydown', function(event) {
@@ -254,8 +255,8 @@ var InputHandler = function(canv, player) {
 
 		//client side-prediction
 		switch (event.keyCode) {
-			case 65: socket.emit("Ikd", code); player.velocity.x=-4; player.dir=0; break;
-			case 68: socket.emit("Ikd", code); player.velocity.x=4; player.dir=1; break;
+			case 65: socket.emit("Ikd", code); player.velocity.x=-8; player.dir=0; break;
+			case 68: socket.emit("Ikd", code); player.velocity.x=8; player.dir=1; break;
 		}
 	}, false);
 	
@@ -271,11 +272,11 @@ var InputHandler = function(canv, player) {
 	}, false);
 	
 	canvas.addEventListener('mouseup', function(event) {
-		var pos = getMousePositionInCanvas(canvas, event);
+		var pos = getMousePositionInCanvas(canvas, event, camera);
 		socket.emit("Imu", pos);
 
 		//client side prediction :)
-		player.Shoot(getMousePositionInCanvas(canvas, event));
+		player.Shoot(pos);
 	}, false);
 
 	canvas.addEventListener('mousedown', function(event) {

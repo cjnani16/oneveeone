@@ -9,7 +9,7 @@ var Arrow = function(start, end, power, pod) {
     var xcomp = end.x-start.x;
     var ycomp = end.y-start.y;
     var mag = Math.sqrt(Math.pow(xcomp,2) + Math.pow(ycomp,2));
-    var launchvel = power;
+    var launchvel = power*2;
 
     this.velocity = new Vector2(xcomp/mag*launchvel,ycomp/mag*launchvel);
     this.bbox = new Bbox(this.position.x, this.position.y, 10, 10);
@@ -21,7 +21,7 @@ var Hunter = function(n, p, a) {
     this.status=3;
     this.name = n;
     this.hitpoints = 1;
-    this.bbox = new Bbox(p.x, p.y, 100, 100);
+    this.bbox = new Bbox(p.x, p.y, 80, 80);
     this.position = p;
     this.velocity = new Vector2(0,0);
 	this.walkSpeed = 3;
@@ -48,8 +48,8 @@ var Hunter = function(n, p, a) {
 
         if (this.a_drawing) {
             this.status=1;
-            this.sprites[1][0].findex.x= (Math.floor((this.a_power/24)*this.sprites[1][0].xframes));
-            this.sprites[1][1].findex.x= (Math.floor((this.a_power/24)*this.sprites[1][1].xframes));
+            this.sprites[1][0].findex.x= (Math.floor((this.a_power/24)*(this.sprites[1][0].xframes-1)));
+            this.sprites[1][1].findex.x= (Math.floor((this.a_power/24)*(this.sprites[1][1].xframes-1)));
             return;
         }
 
