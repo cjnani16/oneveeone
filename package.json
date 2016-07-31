@@ -1,7 +1,7 @@
 {
-  "name": "OneVeeOne",
+  "name": "onevone",
   "author": "Haiieiujah",
-  "description": "online arena",
+  "description": "html5 browser game",
   "dependencies": {
     "body-parser": "^1.15.0",
     "browserify": "^13.0.0",
@@ -13,6 +13,16 @@
   },
 
 "scripts": {
-    "start": "node server.js"
-  }
+    "start": "node server_main.js"
+  },
+
+  "bugs": {
+    "url" : "https://github.com/cjnani16/oneveeone/issues",
+    "email" : "crawford.jnani@gmail.com"
+  },
+
+  "license" : "UNLICENSED",
+  "private" : true
+
+
 }
