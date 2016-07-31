@@ -112,7 +112,7 @@ getMousePositionInCanvas = function(canvas, event)
 {
 	var rect = canvas.getBoundingClientRect();
 	var mpos = new Vector2(0,0);
-	mpos.x = -(canvas.width/2)+Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)+240;
+	mpos.x = -(canvas.width*0.5)+Math.floor((event.clientX-rect.left)/(rect.right-rect.left)*canvas.width)+240;
 	mpos.y = Math.floor((event.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height) - 50;
 
 	return mpos;
@@ -558,7 +558,7 @@ Arena = function(dad)
 *
 */
 
-var port = 420;
+var port = process.env.PORT || 1339;
 
 var express = require('express');
 var app = express();
