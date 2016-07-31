@@ -11,4 +11,9 @@
     "node-uuid": "^1.4.7",
     "socket.io": "latest"
   }
+
+  
 }
+"scripts": {
+    "start": "node server.js"
+  }
